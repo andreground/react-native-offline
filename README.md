@@ -1,4 +1,4 @@
-# react-native-offline
+# react-native-offline-andreground
 [![All Contributors](https://img.shields.io/badge/all_contributors-34-orange.svg?style=flat-square)](#contributors)
 [![CircleCI](https://circleci.com/gh/rgommezz/react-native-offline.svg?style=shield)](https://circleci.com/gh/rgommezz/react-native-offline) [![npm version](https://badge.fury.io/js/react-native-offline.svg)](https://badge.fury.io/js/react-native-offline) [![Coverage Status](https://coveralls.io/repos/github/rauliyohmc/react-native-offline/badge.svg?branch=master)](https://coveralls.io/github/rauliyohmc/react-native-offline?branch=master)
 [![npm](https://img.shields.io/npm/dm/react-native-offline.svg)]()
