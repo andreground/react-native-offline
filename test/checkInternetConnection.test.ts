@@ -5,6 +5,8 @@ import checkInternetAccess from '../src/utils/checkInternetAccess';
 import {
   DEFAULT_PING_SERVER_URL,
   DEFAULT_TIMEOUT,
+  DEFAULT_HTTP_METHOD,
+  DEFAULT_CUSTOM_HEADERS,
 } from '../src/utils/constants';
 
 jest.mock('../src/utils/checkInternetAccess');
@@ -21,8 +23,10 @@ describe('checkInternetConnection', () => {
     it(`calls checkInternetAccess and resolves the promise with its returned value`, async () => {
       const isConnected = await checkInternetConnection('foo.com', 3000, true);
       expect(checkInternetAccess).toHaveBeenCalledWith({
+        method: DEFAULT_HTTP_METHOD,
         timeout: 3000,
         url: 'foo.com',
+        customHeaders: DEFAULT_CUSTOM_HEADERS,
       });
       expect(isConnected).toBe(true);
     });
@@ -43,8 +47,10 @@ describe('checkInternetConnection', () => {
     fetch.mockImplementationOnce(() => Promise.resolve({ isConnected: true }));
     const isConnected = await checkInternetConnection();
     expect(checkInternetAccess).toHaveBeenCalledWith({
+      method: DEFAULT_HTTP_METHOD,
       timeout: DEFAULT_TIMEOUT,
       url: DEFAULT_PING_SERVER_URL,
+      customHeaders: DEFAULT_CUSTOM_HEADERS,
     });
     expect(isConnected).toBe(true);
   });

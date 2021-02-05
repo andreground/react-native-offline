@@ -70,93 +70,36 @@ This gives you the power to prioritize our work and support the project contribu
 
 ## Installation
 
-### RN >= 0.59.x
-Make sure to have `react-redux` version 6.x.x or 7.x.x installed.
-```
+###  RN >= 0.60
+This library uses [@react-native-community/netinfo](https://github.com/react-native-community/react-native-netinfo) behind the scenes, which contains native code, so you need to install it and link it as well. Follow the next steps in order:
+```bash
 $ yarn add react-native-offline
+$ yarn add @react-native-community/netinfo
+# extra step for iOS 
+$ (cd ios && pod install)
 
 # Or if you use npm
-$ npm i --save react-native-offline
+$ npm i react-native-offline
+$ npm i @react-native-community/netinfo
+# extra step for iOS
+$ (cd ios && pod install)
 ```
 
-This library uses `@react-native-community/netinfo@4.x.x` version underneath the hood. You then need to link the native parts of the library for the platforms you are using.
-
-If you are on React Native v0.60, you don't need to do anything else, since it supports autolinking. For iOS, just go to the `ios` folder and run `pod install`. However, autolinking might not pick up and install the `@react-native-community/netinfo` dependency. If that happens, first install `@react-native-community/netinfo` directly, then run `pod install`, then install `react-native-offline` and finish with `pod install`.
-
-Otherwise, the easiest way to link the library is using the CLI tool by running this command from the root of your project:
-
-```
-react-native link @react-native-community/netinfo
-```
-
-If you can't or don't want to use the CLI tool, you can also manually link the library using the instructions below (click on the arrow to show them):
-
-<details>
-<summary>Manually link the library on iOS</summary>
-
-Either follow the [instructions in the React Native documentation](https://facebook.github.io/react-native/docs/linking-libraries-ios#manual-linking) to manually link the framework or link using [Cocoapods](https://cocoapods.org) by adding this to your `Podfile`:
-
-```ruby
-pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
-```
-
-</details>
-
-<details>
-<summary>Manually link the library on Android</summary>
-
-Make the following changes:
-
-#### `android/settings.gradle`
-```groovy
-include ':react-native-community-netinfo'
-project(':react-native-community-netinfo').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/netinfo/android')
-```
-
-#### `android/app/build.gradle`
-```groovy
-dependencies {
-   ...
-   implementation project(':react-native-community-netinfo')
-}
-```
-
-#### `android/app/src/main/.../MainApplication.java`
-On top, where imports are:
-
-```java
-import com.reactnativecommunity.netinfo.NetInfoPackage;
-```
-
-Add the `NetInfoPackage` class to your list of exported packages.
-
-```java
-@Override
-protected List<ReactPackage> getPackages() {
-    return Arrays.asList(
-            new MainReactPackage(),
-            new NetInfoPackage()
-    );
-}
-```
-
-</details>
-
-Last but not list, you need to use [jetifier](https://github.com/mikehardy/jetifier) to convert the native dependency to AndroidX.
-
-### RN >= 0.55.x && RN <= 0.58.x
-Make sure to have `react-redux` version 6.x.x or 7.x.x installed.
-```
-$ yarn add react-native-offline@4.3.2
-
-# Or if you use npm
-$ npm i --save react-native-offline@4.3.2
-```
+On RN 0.60, for Android, you may need to use [jetifier](https://github.com/mikehardy/jetifier) to convert the native dependency to AndroidX.
 
 #### Android
 To request network info in Android an extra step is required, so you should add the following line to your app's `AndroidManifest.xml` as well:
 
 `<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />`
+
+### Expo >= 35
+If you are using the [managed workflow](https://docs.expo.io/versions/latest/introduction/managed-vs-bare/#managed-workflow), you don't need to install any extra dependency. Expo SDK already ships in with `NetInfo`.
+```bash
+$ yarn add react-native-offline
+
+# Or if you use npm
+$ npm i react-native-offline
+```
 
 ## API
 
@@ -177,6 +120,7 @@ type Props = {
     pingOnlyIfOffline?: boolean = false,
     pingInBackground?: boolean = false,
     httpMethod?: HTTPMethod = 'HEAD',
+    customHeaders?: HTTPHeaders = {},
 }
 ```
 
@@ -196,6 +140,8 @@ type Props = {
 `pingInBackground`: whether or not to check connectivity when app isn't in the foreground. Defaults to `false`.
 
 `httpMethod`: http method used to ping the server. Supports HEAD or OPTIONS. Defaults to `HEAD`.
+
+`customHeaders`: optional custom headers to add for ping request.
 
 ##### Usage
 ```js
@@ -355,7 +301,7 @@ type MiddlewareConfig = {
 This is the setup you need to put in place for libraries such as `redux-saga` or `redux-observable`, which rely on plain actions being dispatched to trigger async flow:
 
 `regexActionType`: regular expression to indicate the action types to be intercepted in offline mode.
-By default it's configured to intercept actions for fetching data following the Redux [convention](https://redux.js.org/docs/advanced/AsyncActions.html). That means that it will intercept actions with types such as `FETCH_USER_ID_REQUEST`, `FETCH_PRODUCTS_REQUEST` etc.
+By default it's configured to intercept actions for fetching data following the Redux [convention](https://redux.js.org/advanced/async-actions). That means that it will intercept actions with types such as `FETCH_USER_ID_REQUEST`, `FETCH_PRODUCTS_REQUEST` etc.
 
 `actionTypes`: array with additional action types to intercept that don't fulfil the RegExp criteria. For instance, it's useful for actions that carry along refreshing data, such as `REFRESH_LIST`.
 
@@ -469,7 +415,7 @@ const store = createStore(rootReducer);
 export default store;
 ```
 
-The comparison function receives the action dispatched when offline and the current `actionQueue`. The result of the function will be either `undefined`, meaning no match found, or the action that matches the passed in action. So basically, you need to return the upcoming action if you wish to replace an existing one. An example of how to use it can be found [here](https://github.com/rgommezz/react-native-offline/blob/master/test/reducer.test.js#L121).
+The comparison function receives the action dispatched when offline and the current `actionQueue`. The result of the function will be either `undefined`, meaning no match found, or the action that matches the passed in action. So basically, you need to return the upcoming action if you wish to replace an existing one. An example of how to use it can be found [here](https://github.com/rgommezz/react-native-offline/blob/master/test/reducer.test.ts#L124).
 
 ```js
 function comparisonFn(
@@ -548,7 +494,8 @@ Utility function that allows you to query for internet connectivity on demand. I
 checkInternetConnection(
   url?: string = 'https://www.google.com/',
   pingTimeout?: number = 10000,
-  shouldPing?: boolean = true
+  shouldPing?: boolean = true,
+  method?: HTTPMethod = 'HEAD'
 ): Promise<boolean>
 ```
 
@@ -651,7 +598,7 @@ It works in the following way: if a `changeQueueSemaphore('RED')` action is disp
 ```js
 import { offlineActionCreators } from 'react-native-offline';
 ...
-async function weHaltQeueeReleaseHere(){
+async function weHaltQueueReleaseHere(){
   const { changeQueueSemaphore } = offlineActionCreators;
   dispatch(changeQueueSemaphore('RED')) // The queue is now halted and it won't continue dispatching actions
   await somePromise();
@@ -669,6 +616,31 @@ import { offlineActionCreators } from 'react-native-offline';
 fetch('someurl/data').catch(error => {
   dispatch(offlineActionCreators.fetchOfflineMode(action)) // <-- action is the one that triggered your api call
 );
+```
+
+##### A sample using redux-thunk
+```js
+const fetchApi = (params) => {
+  function thunk(dispatch, getState) {
+    YourService.save(params)
+      .then(response => {
+        console.log('[success]:', response)
+      })
+      .catch(error => {
+        console.error('[error]:', error);
+        dispatch(offlineActionCreators.fetchOfflineMode(thunk));
+      });
+  }
+
+  thunk.interceptInOffline = true;
+
+  thunk.meta = {
+    retry: true,
+    name: 'fetchApi',
+    args: [params],
+  };
+  return thunk;
+};
 ```
 
 #### How to persist and rehydrate thunks in the offline queue with Redux Persist
@@ -833,6 +805,11 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
   </tr>
   <tr>
     <td align="center"><a href="http://ankeetmaini.github.io/"><img src="https://avatars1.githubusercontent.com/u/6652823?v=4" width="100px;" alt=""/><br /><sub><b>Ankeet Maini</b></sub></a><br /><a href="https://github.com/rgommezz/react-native-offline/commits?author=ankeetmaini" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.nipuna777.com"><img src="https://avatars0.githubusercontent.com/u/5859290?v=4" width="100px;" alt=""/><br /><sub><b>Nipuna Gunathilake</b></sub></a><br /><a href="https://github.com/rgommezz/react-native-offline/commits?author=nipuna777" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/1ike"><img src="https://avatars1.githubusercontent.com/u/10694949?v=4" width="100px;" alt=""/><br /><sub><b>1ike</b></sub></a><br /><a href="https://github.com/rgommezz/react-native-offline/commits?author=1ike" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/JH108"><img src="https://avatars1.githubusercontent.com/u/14010157?v=4" width="100px;" alt=""/><br /><sub><b>Jesse Hill</b></sub></a><br /><a href="https://github.com/rgommezz/react-native-offline/commits?author=JH108" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/ugurakkurt"><img src="https://avatars0.githubusercontent.com/u/12188837?v=4" width="100px;" alt=""/><br /><sub><b>ugur akkurt</b></sub></a><br /><a href="https://github.com/rgommezz/react-native-offline/commits?author=ugurakkurt" title="Code">💻</a> <a href="https://github.com/rgommezz/react-native-offline/commits?author=ugurakkurt" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/caiangums"><img src="https://avatars2.githubusercontent.com/u/7551787?v=4" width="100px;" alt=""/><br /><sub><b>Ilê Caian</b></sub></a><br /><a href="https://github.com/rgommezz/react-native-offline/commits?author=caiangums" title="Documentation">📖</a></td>
   </tr>
 </table>
 
